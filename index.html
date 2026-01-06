@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Card Input - Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .demo-section {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 16px;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .payment-form {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .form-actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 14px 28px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status-message {
+            margin-top: 20px;
+            padding: 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status-message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .themes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .theme-button {
+            padding: 14px 20px;
+            background: #f5f5f5;
+            color: #333;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .theme-button:hover {
+            border-color: #667eea;
+            background: white;
+            color: #667eea;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(102, 126, 234, 0.2);
+        }
+
+        .theme-button.active {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+            box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Theme 1 - Default */
+        payment-card-input.theme-default {
+            --pci-primary-color: #667eea;
+            --pci-error-color: #dc3545;
+            --pci-success-color: #28a745;
+            --pci-border-color: #ddd;
+            --pci-border-radius: 8px;
+            --pci-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        /* Theme 2 - Modern Dark */
+        payment-card-input.theme-dark {
+            --pci-primary-color: #00d4ff;
+            --pci-error-color: #ff4757;
+            --pci-success-color: #2ed573;
+            --pci-border-color: #34495e;
+            --pci-border-radius: 12px;
+            --pci-background-color: #2c3e50;
+            --pci-text-color: #ecf0f1;
+            --pci-font-family: 'Courier New', monospace;
+        }
+
+        /* Theme 3 - Minimal */
+        payment-card-input.theme-minimal {
+            --pci-primary-color: #000;
+            --pci-error-color: #e74c3c;
+            --pci-success-color: #27ae60;
+            --pci-border-color: #e0e0e0;
+            --pci-border-radius: 4px;
+            --pci-font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+
+        /* Theme 4 - Rounded */
+        payment-card-input.theme-rounded {
+            --pci-primary-color: #ff6b6b;
+            --pci-error-color: #ee5a6f;
+            --pci-success-color: #51cf66;
+            --pci-border-color: #ffd93d;
+            --pci-border-radius: 25px;
+            --pci-font-family: 'Comic Sans MS', cursive;
+        }
+
+        .code-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+
+        code {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+        }
+
+        details {
+            margin-top: 20px;
+        }
+
+        summary {
+            cursor: pointer;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-weight: 600;
+            color: #333;
+            user-select: none;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        summary:hover {
+            background: #e9ecef;
+            color: #667eea;
+        }
+
+        summary::marker {
+            font-size: 1.2em;
+        }
+
+        details[open] summary {
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+            margin-bottom: 0;
+        }
+
+        details .details-content {
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="demo-section">
+            <h1>🎨 Payment Card Input Component</h1>
+            <p class="subtitle">Production-grade, framework-agnostic, accessible payment form component</p>
+
+            <h2>Choose a Theme</h2>
+            <div class="themes">
+                <button class="theme-button active" onclick="setTheme('theme-default')">
+                    Default Theme
+                </button>
+                <button class="theme-button" onclick="setTheme('theme-dark')">
+                    Modern Dark
+                </button>
+                <button class="theme-button" onclick="setTheme('theme-minimal')">
+                    Minimal
+                </button>
+                <button class="theme-button" onclick="setTheme('theme-rounded')">
+                    Rounded & Fun
+                </button>
+            </div>
+
+            <h2>Try it out</h2>
+            <div class="payment-form">
+                <payment-card-input 
+                    id="payment-component"
+                    class="theme-default">
+                </payment-card-input>
+
+                <div class="form-actions">
+                    <button id="submit-btn" disabled>Process Payment</button>
+                    <button id="reset-btn" style="background: #6c757d;">Reset</button>
+                </div>
+
+                <div id="status" style="display: none;" class="status-message"></div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>Test Cards</h2>
+            <div class="code-section">
+                <strong>Visa:</strong> 4242 4242 4242 4242<br>
+                <strong>Visa (declined):</strong> 4000 0000 0000 0002<br>
+                <strong>Mastercard:</strong> 5555 5555 5555 4444<br>
+                <strong>Mastercard (alt):</strong> 5105 1051 0510 5100<br>
+                <strong>Amex:</strong> 3782 822463 10005<br>
+                <strong>Discover:</strong> 6011 1111 1111 1117<br>
+                <strong>Expiry:</strong> Any future date (e.g., 12/28)<br>
+                <strong>CVC:</strong> Any 3 digits (4 for Amex)<br>
+                <strong>Postal:</strong> Any valid postal code (e.g., 12345)
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>Usage Example</h2>
+            <details>
+                <summary>📖 View Code Example</summary>
+                <div class="details-content">
+                    <pre><code>&lt;!-- Include the component --&gt;
+&lt;script src="payment-card-input.umd.js"&gt;&lt;/script&gt;
+
+&lt;!-- Use it in your HTML --&gt;
+&lt;payment-card-input 
+    id="payment"
+    class="theme-default"&gt;
+&lt;/payment-card-input&gt;
+
+&lt;script&gt;
+    const component = document.querySelector('#payment');
+    
+    // Listen for validation changes
+    component.addEventListener('validation-change', (e) => {
+        console.log('Valid:', e.detail.isValid);
+        console.log('Errors:', e.detail.errors);
+    });
+    
+    // Listen for token generation
+    component.addEventListener('token-generated', (e) => {
+        console.log('Token:', e.detail.token);
+        console.log('Metadata:', e.detail.metadata);
+    });
+    
+    // Listen for payment completion
+    component.addEventListener('payment-complete', (e) => {
+        console.log('Success:', e.detail.success);
+        console.log('Transaction:', e.detail.transactionId);
+    });
+&lt;/script&gt;</code></pre>
+                </div>
+            </details>
+        </div>
+    </div>
+
+    <script type="module" src="/src/payment-card-input.js"></script>
+    <script>
+        let currentTheme = 'theme-default';
+        const component = document.querySelector('#payment-component');
+        const submitBtn = document.querySelector('#submit-btn');
+        const resetBtn = document.querySelector('#reset-btn');
+        const statusEl = document.querySelector('#status');
+
+        function setTheme(theme) {
+            currentTheme = theme;
+            component.className = theme;
+            
+            // Update active button
+            document.querySelectorAll('.theme-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        // Listen for validation changes
+        component.addEventListener('validation-change', (e) => {
+            console.log('Validation changed:', e.detail);
+            submitBtn.disabled = !e.detail.isValid;
+        });
+
+        // Listen for token generation
+        component.addEventListener('token-generated', (e) => {
+            console.log('Token generated:', e.detail);
+            showStatus(`Token generated: ${e.detail.token}`, 'info');
+        });
+
+        // Listen for payment completion
+        component.addEventListener('payment-complete', (e) => {
+            console.log('Payment complete:', e.detail);
+            if (e.detail.success) {
+                showStatus(`✓ Payment successful! Transaction ID: ${e.detail.transactionId}`, 'success');
+            } else {
+                showStatus(`✗ Payment failed: ${e.detail.message}`, 'error');
+            }
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Process Payment';
+        });
+
+        // Listen for errors
+        component.addEventListener('error', (e) => {
+            console.error('Error:', e.detail);
+            showStatus(`Error: ${e.detail.message}`, 'error');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Process Payment';
+        });
+
+        // Submit button handler
+        submitBtn.addEventListener('click', async () => {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Processing...';
+            statusEl.style.display = 'none';
+            
+            try {
+                await component.processPayment(1000, 'USD'); // $10.00
+            } catch (error) {
+                showStatus(`Error: ${error.message}`, 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Process Payment';
+            }
+        });
+
+        // Reset button handler
+        resetBtn.addEventListener('click', () => {
+            component.reset();
+            statusEl.style.display = 'none';
+            submitBtn.disabled = true;
+        });
+
+        function showStatus(message, type) {
+            statusEl.textContent = message;
+            statusEl.className = `status-message ${type}`;
+            statusEl.style.display = 'block';
+        }
+
+        // Make setTheme available globally
+        window.setTheme = setTheme;
+    </script>
+</body>
+</html>
