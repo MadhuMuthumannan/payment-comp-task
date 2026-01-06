@@ -12,7 +12,88 @@ A production-grade, framework-agnostic, accessible Web Component for collecting 
 - 📱 **Responsive** - Mobile-friendly design
 - 🚀 **Lightweight** - Minimal dependencies, small bundle size
 
+## � Installation
+
+### Via npm
+
+```bash
+npm install payment-card-input
+```
+
+### Via CDN
+
+```html
+<!-- Latest version -->
+<script src="https://unpkg.com/payment-card-input@latest/dist/payment-card-input.umd.js"></script>
+
+<!-- Specific version -->
+<script src="https://unpkg.com/payment-card-input@1.0.0/dist/payment-card-input.umd.js"></script>
+```
+
+**Alternative CDNs:**
+- **jsDelivr**: `https://cdn.jsdelivr.net/npm/payment-card-input@1.0.0/dist/payment-card-input.umd.js`
+- **unpkg**: `https://unpkg.com/payment-card-input@1.0.0/dist/payment-card-input.umd.js`
+
 ## 🚀 Quick Start
+
+### Using npm Package
+
+```javascript
+// Import in your JavaScript/TypeScript project
+import 'payment-card-input';
+
+// Or with CommonJS
+require('payment-card-input');
+
+// Now use the component in your HTML
+```
+
+```html
+<payment-card-input id="payment"></payment-card-input>
+
+<script>
+  const component = document.querySelector('#payment');
+  
+  component.addEventListener('validation-change', (e) => {
+    console.log('Valid:', e.detail.isValid);
+  });
+  
+  component.addEventListener('payment-complete', (e) => {
+    console.log('Payment successful:', e.detail);
+  });
+</script>
+```
+
+### Using CDN
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://unpkg.com/payment-card-input@1.0.0/dist/payment-card-input.umd.js"></script>
+</head>
+<body>
+  <payment-card-input id="payment"></payment-card-input>
+  <button id="pay-btn">Process Payment</button>
+  
+  <script>
+    const component = document.querySelector('#payment');
+    const payBtn = document.querySelector('#pay-btn');
+    
+    component.addEventListener('validation-change', (e) => {
+      payBtn.disabled = !e.detail.isValid;
+    });
+    
+    payBtn.addEventListener('click', async () => {
+      const result = await component.processPayment(1000, 'USD');
+      console.log('Payment result:', result);
+    });
+  </script>
+</body>
+</html>
+```
+
+## 🛠️ Development Setup (for contributors)
 
 ### Installation
 
@@ -84,6 +165,12 @@ This creates:
 
 ### React
 
+**Installation:**
+```bash
+npm install payment-card-input
+```
+
+**Usage:**
 ```jsx
 import { useEffect, useRef, useState } from 'react';
 import 'payment-card-input';
@@ -128,6 +215,12 @@ function PaymentForm() {
 
 ### Vue
 
+**Installation:**
+```bash
+npm install payment-card-input
+```
+
+**Usage:**
 ```vue
 <template>
     <div>
@@ -163,6 +256,11 @@ export default {
 ```
 
 ### Angular
+
+**Installation:**
+```bash
+npm install payment-card-input
+```
 
 **Step 1:** Add the schema to your module to allow custom elements
 
