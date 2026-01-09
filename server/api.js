@@ -49,6 +49,111 @@ app.post('/api/tokenize', async (req, res) => {
 });
 
 /**
+ * Get payment history
+ */
+app.get('/api/payments/history', async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 10;
+    
+    // In real app, this would fetch from database
+    const mockHistory = [];
+    
+    res.json({
+      success: true,
+      payments: mockHistory,
+      total: mockHistory.length
+    });
+  } catch (error) {
+    console.error('Error fetching payment history:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch payment history'
+    });
+  }
+});
+
+/**
+ * Get saved cards
+ */
+app.get('/api/cards', async (req, res) => {
+  try {
+    // In real app, fetch from database
+    const mockCards = [];
+    
+    res.json({
+      success: true,
+      cards: mockCards
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch saved cards'
+    });
+  }
+});
+
+/**
+ * Save a card
+ */
+app.post('/api/cards', async (req, res) => {
+  try {
+    const { cardType, last4, expiryMonth, expiryYear, nickname } = req.body;
+    
+    // Validate required fields
+    if (!cardType || !last4) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields'
+      });
+    }
+    
+    const savedCard = {
+      id: `card_${generateRandomString(16)}`,
+      cardType,
+      last4,
+      expiryMonth,
+      expiryYear,
+      nickname: nickname || `${cardType} ****${last4}`,
+      createdAt: new Date().toISOString()
+    };
+    
+    console.log('Card saved:', savedCard);
+    
+    res.json({
+      success: true,
+      card: savedCard
+    });
+  } catch (error) {
+    console.error('Error saving card:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to save card'
+    });
+  }
+});
+
+/**
+ * Delete a saved card
+ */
+app.delete('/api/cards/:cardId', async (req, res) => {
+  try {
+    const { cardId } = req.params;
+    
+    console.log('Deleting card:', cardId);
+    
+    res.json({
+      success: true,
+      message: 'Card deleted successfully'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete card'
+    });
+  }
+});
+
+/**
  * Payment processing endpoint
  * Accepts a token and processes payment
  */

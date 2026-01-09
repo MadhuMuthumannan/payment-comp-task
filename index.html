@@ -249,6 +249,63 @@
             border-bottom-left-radius: 8px;
             border-bottom-right-radius: 8px;
         }
+
+        .history-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .history-item {
+            padding: 12px;
+            background: white;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .saved-cards {
+            display: grid;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .card-item {
+            padding: 16px;
+            background: white;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-item.default {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 13px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -283,9 +340,20 @@
                 <div class="form-actions">
                     <button id="submit-btn" disabled>Process Payment</button>
                     <button id="reset-btn" style="background: #6c757d;">Reset</button>
+                    <button id="save-card-btn" style="background: #28a745;">Save Card</button>
                 </div>
 
                 <div id="status" style="display: none;" class="status-message"></div>
+            </div>
+
+            <div class="history-section">
+                <h3>💳 Saved Cards</h3>
+                <div id="saved-cards-list" class="saved-cards"></div>
+            </div>
+
+            <div class="history-section">
+                <h3>📝 Payment History</h3>
+                <div id="payment-history-list"></div>
             </div>
         </div>
 
@@ -350,6 +418,7 @@
         const component = document.querySelector('#payment-component');
         const submitBtn = document.querySelector('#submit-btn');
         const resetBtn = document.querySelector('#reset-btn');
+        const saveCardBtn = document.querySelector('#save-card-btn');
         const statusEl = document.querySelector('#status');
 
         function setTheme(theme) {
@@ -367,6 +436,7 @@
         component.addEventListener('validation-change', (e) => {
             console.log('Validation changed:', e.detail);
             submitBtn.disabled = !e.detail.isValid;
+            saveCardBtn.disabled = !e.detail.isValid;
         });
 
         // Listen for token generation
@@ -380,11 +450,19 @@
             console.log('Payment complete:', e.detail);
             if (e.detail.success) {
                 showStatus(`✓ Payment successful! Transaction ID: ${e.detail.transactionId}`, 'success');
+                refreshPaymentHistory();
             } else {
                 showStatus(`✗ Payment failed: ${e.detail.message}`, 'error');
             }
             submitBtn.disabled = false;
             submitBtn.textContent = 'Process Payment';
+        });
+
+        // Listen for card saved
+        component.addEventListener('card-saved', (e) => {
+            console.log('Card saved:', e.detail);
+            showStatus('Card saved successfully!', 'success');
+            refreshSavedCards();
         });
 
         // Listen for errors
@@ -417,11 +495,86 @@
             submitBtn.disabled = true;
         });
 
+        // Save card button handler
+        saveCardBtn.addEventListener('click', () => {
+            const nickname = prompt('Enter a nickname for this card:');
+            if (nickname) {
+                try {
+                    component.saveCard(nickname);
+                } catch (error) {
+                    showStatus(`Error: ${error.message}`, 'error');
+                }
+            }
+        });
+
         function showStatus(message, type) {
             statusEl.textContent = message;
             statusEl.className = `status-message ${type}`;
             statusEl.style.display = 'block';
         }
+
+        // Display payment history
+        function refreshPaymentHistory() {
+            const historyList = document.getElementById('payment-history-list');
+            const history = component.getPaymentHistory(5);
+            
+            if (history.length === 0) {
+                historyList.innerHTML = '<p style="color: #999;">No payment history yet</p>';
+                return;
+            }
+            
+            historyList.innerHTML = history.map(payment => `
+                <div class="history-item">
+                    <div>
+                        <strong>${payment.cardType.toUpperCase()}</strong> ****${payment.last4}<br>
+                        <small>${new Date(payment.timestamp).toLocaleString()}</small>
+                    </div>
+                    <div>
+                        <strong>$${(payment.amount / 100).toFixed(2)}</strong>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Display saved cards
+        function refreshSavedCards() {
+            const cardsList = document.getElementById('saved-cards-list');
+            const cards = component.getSavedCards();
+            
+            if (cards.length === 0) {
+                cardsList.innerHTML = '<p style="color: #999;">No saved cards</p>';
+                return;
+            }
+            
+            cardsList.innerHTML = cards.map(card => `
+                <div class="card-item ${card.isDefault ? 'default' : ''}">
+                    <div>
+                        <strong>${card.nickname}</strong><br>
+                        <small>${card.cardType.toUpperCase()} ****${card.last4} • Expires ${card.expiryMonth}/${card.expiryYear}</small>
+                        ${card.isDefault ? '<br><small style="color: #667eea;">✓ Default</small>' : ''}
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn-small btn-danger" onclick="deleteCard('${card.id}')">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function deleteCard(cardId) {
+            if (confirm('Are you sure you want to delete this card?')) {
+                // This would call the savedCardsManager directly
+                // For now just refresh the display
+                import('./src/utils/saved-cards.js').then(module => {
+                    module.savedCardsManager.deleteCard(cardId);
+                    refreshSavedCards();
+                    showStatus('Card deleted', 'info');
+                });
+            }
+        }
+
+        // Initialize displays
+        refreshPaymentHistory();
+        refreshSavedCards();
 
         // Make setTheme available globally
         window.setTheme = setTheme;
