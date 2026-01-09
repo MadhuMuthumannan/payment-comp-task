@@ -9,6 +9,8 @@ import {
   getLast4
 } from './utils/validation.js';
 import { generateToken } from './utils/crypto.js';
+import { paymentHistory } from './utils/payment-history.js';
+import { savedCardsManager } from './utils/saved-cards.js';
 
 const template = document.createElement('template');
 template.innerHTML = `
@@ -555,6 +557,18 @@ class PaymentCardInput extends HTMLElement {
       
       const result = await response.json();
       
+      // Add to payment history if successful
+      if (result.success) {
+        const payment = paymentHistory.addPayment({
+          token: token,
+          amount: amount,
+          currency: currency,
+          cardType: this.state.cardType,
+          last4: getLast4(this.state.cardNumber)
+        });
+        console.log('Payment added to history:', payment);
+      }
+      
       this.dispatchEvent(new CustomEvent('payment-complete', {
         detail: result,
         bubbles: true,
@@ -628,6 +642,62 @@ class PaymentCardInput extends HTMLElement {
       cardType: this.state.cardType,
       last4: this.state.cardNumber ? getLast4(this.state.cardNumber) : null
     };
+  }
+
+  // Save current card
+  saveCard(nickname) {
+    if (!this.state.isValid) {
+      throw new Error('Please fill in valid card details before saving');
+    }
+
+    const cardData = {
+      cardType: this.state.cardType,
+      last4: getLast4(this.state.cardNumber),
+      expiryMonth: this.state.expiryDate.substring(0, 2),
+      expiryYear: this.state.expiryDate.substring(3, 5),
+      nickname: nickname
+    };
+
+    const result = savedCardsManager.saveCard(cardData);
+    
+    if (result.success) {
+      this.dispatchEvent(new CustomEvent('card-saved', {
+        detail: result.card,
+        bubbles: true,
+        composed: true
+      }));
+    }
+
+    return result;
+  }
+
+  // Load saved card into form
+  loadSavedCard(cardId) {
+    const card = savedCardsManager.getCardById(cardId);
+    
+    if (!card) {
+      throw new Error('Card not found');
+    }
+
+    // Can't fill card number or CVC for security, only expiry
+    this.shadowRoot.getElementById('expiry-date').value = `${card.expiryMonth}/${card.expiryYear}`;
+    this.state.expiryDate = `${card.expiryMonth}/${card.expiryYear}`;
+    this.state.cardType = card.cardType;
+    
+    this.validateField('expiryDate');
+    this.updateValidationState();
+    
+    return card;
+  }
+
+  // Get payment history
+  getPaymentHistory(count) {
+    return paymentHistory.getRecentPayments(count);
+  }
+
+  // Get saved cards
+  getSavedCards() {
+    return savedCardsManager.getSavedCards();
   }
 }
 
